@@ -12,6 +12,7 @@ def random_cell_data(file_path):
         data = csv.reader(file.readlines())
         for item in data:
             # sectorid, enodebid, tac, lon ,lat, u , paging
+            # 这个地方呀，他就是生成ui的随机值
             u = rd.randint(10, 30)
             paging = u * rd.randint(1, 5)
             save_file.write("{},{},{},{},{},{},{}\n".format(item[3], item[5], item[11], item[13], item[14], u, paging))
@@ -19,13 +20,12 @@ def random_cell_data(file_path):
 
 # 在csv文件中读取小区数据
 def gen_cell_from_csv(file_path):
-    cell_list = []
+    cell_list = {}
     with open(file_path, 'r') as line:
         data = csv.reader(line.readlines())
         for item in data:
             # sectorid, enodebid, tac, lon ,lat, u , paging
-            s = Sector(item[0], item[1], item[2], item[3], item[4], item[5], item[6])
-            cell_list.append(s)
+            cell_list[item[0]] = [item[1], item[2], item[3], item[4], item[5], item[6]]
     return cell_list
 
 
@@ -36,10 +36,9 @@ def gen_hoat_matrix(file_path):
         data = csv.reader(line.readlines())
         for item in data:
             if item[2] in res_dic:
-                hoat_list = res_dic[item[2]]
-                hoat_list.append({item[3]: int(item[4])})
+                res_dic[item[2]][item[3]] = int(item[4])
             else:
-                res_dic[item[2]] = []
+                res_dic[item[2]] = {}
     return res_dic
 
 
