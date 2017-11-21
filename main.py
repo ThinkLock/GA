@@ -132,9 +132,10 @@ def main():
     # 根据原始的TAC分配值，生成跟踪区的候选集
     candidate = get_candidate_from_cell_list(cell_list)
     print("原始可分配的TAC个数: {}\n".format(len(candidate)))
+    print(candidate)
 
     ancestor = Individual()
-    ancestor.init_origin_ta(cell_list)
+    ancestor.init_old_data(cell_list)
 
     origin_cso = calculate_origin_fitness(ancestor, hand_over_count, cell_list)
     print("初始评测值: {}\n".format(origin_cso))
