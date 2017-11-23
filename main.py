@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import os
+import random
+from operator import attrgetter
+
 from utils import *
 from individual import *
 from config import *
@@ -41,7 +45,6 @@ def remove_repeat(cell_list):
             res.append(cell)
             flag.append(cell.sector_id)
     return res
-
 
 
 # 计算适应度的值
@@ -102,7 +105,7 @@ def gen_new_individual(t0, tl, candidate, hand_over, cell_list, B):
                 t1 = calculate_cso(tl, hand_over, cell_list)
                 t2 = calculate_cso(t_sub, hand_over, cell_list)
                 if t1 - t2 > deita_start:
-                    deita_start = t1 -t2
+                    deita_start = t1 - t2
                     i_start = i
                     m_start = m
 
@@ -123,7 +126,7 @@ def gen_new_individual(t0, tl, candidate, hand_over, cell_list, B):
     return tl
 
 
-def main():
+def old_main():
     cell_list = gen_cell_from_csv('./data/tbCellNew.csv')
     hand_over_count = gen_hoat_matrix('./data/tbHandOverCount.csv')
     adj_dic = gen_adj_matrix('./data/tbAdjCell.csv')
@@ -149,6 +152,125 @@ def main():
                             calculate_B(cell_list))
     print(ancestor.tac_dic)
     print(tl)
+
+
+def read_generation():
+    res = []
+    gen_path = '/Users/didi/Desktop/gen1'
+    idv_list = os.listdir(gen_path)
+    print(len(idv_list[46:]))
+    cnt = 0
+    for idv in idv_list[46:]:
+        with open(os.path.join(gen_path, idv), 'rb') as f:
+            solution = pickle.load(f)
+            cnt += 1
+            individual = Individual()
+            individual.tac_dic = solution
+            res.append(individual)
+    return res
+
+
+def get_crossover_sector_id(cell_list, random_rate=0.01):
+    res = []
+    cell_id = {}
+    for sector_id, content in cell_list.items():
+        if int(content[0]) not in cell_id:
+            cell_id[int(content[0])] = [sector_id]
+        else:
+            cell_id[int(content[0])].append(sector_id)
+
+    for c_id, sectors in cell_id.items():
+        if random.random() < random_rate:
+            res.extend(sectors)
+    print(res)
+    return res
+
+
+# 选择
+def selection(generation, retain_rate, random_select_rate):
+    retain_length = int(len(generation) * retain_rate)
+    graded = sorted(generation, key=attrgetter('fitness'))
+    parents = graded[:retain_length]
+    for chromosome in graded[retain_length:]:
+        if random.randint(0, 100) < random_select_rate:
+            parents.append(chromosome)
+    return parents
+
+
+# 交叉
+def crossover(parents, children_count, cell_list):
+    children = []
+
+    while len(children) < children_count:
+        male = random.randint(0, len(parents) - 1)
+        female = random.randint(0, len(parents) - 1)
+        if male != female:
+            get_crossover_sector_id(cell_list)
+            # jinzhangeshu
+            # for 1 in jizhangeshu
+            #     rand_cro=range(0,1)
+            #     if rand_cro< p1#交叉概率
+            #         拿到ijizhan
+            # # 随机选取交叉点
+            # cross_pos = random.randint(0, self.length)
+            # # 生成掩码，方便位操作
+            # mask = 0
+            # for i in xrange(cross_pos):
+            #     mask |= (1 << i)
+            # male = parents[male]
+            # female = parents[female]
+            # # 孩子将获得父亲在交叉点前的基因和母亲在交叉点后（包括交叉点）的基因
+            # child = ((male & mask) | (female & ~mask)) & ((1 << self.length) - 1)
+            # children.append(child)
+            break
+
+    return children
+
+
+# 变异
+def mutation(idvs):
+    return []
+
+
+# 进化
+def evolve(generation, hand_over, cell_list, adj_list):
+    parents = selection(generation, 0.4, 10)
+    print(len(parents))
+    children = crossover(parents, len(generation) - len(parents), cell_list)
+    new_generation = mutation(parents + children)
+    return new_generation
+
+
+def main():
+    cell_list = gen_cell_from_csv('./data/tbCellNew.csv')
+    hand_over_count = gen_hoat_matrix('./data/tbHandOverCount.csv')
+    adj_dic = gen_adj_matrix('./data/tbAdjCell.csv')
+
+    # 过滤小区，仅仅优化在 切换次数表中存在的小区
+    cell_list = filter_cell(cell_list, hand_over_count)
+    # cell_list = remove_repeat(cell_list)
+    # 目前没有对小区进行过滤选择
+    print("优化小区个数：{}\n".format(len(cell_list)))
+
+    # 根据原始的TAC分配值，生成跟踪区的候选集
+    candidate = get_candidate_from_cell_list(cell_list)
+    print("原始可分配的TAC个数: {}\n".format(len(candidate)))
+    print(candidate)
+
+    ancestor = Individual()
+    ancestor.init_old_data(cell_list)
+    origin_cso = calculate_origin_fitness(ancestor, hand_over_count, cell_list)
+    print("初始评测值: {}\n".format(origin_cso))
+
+    # 生成第一代种群
+    first_generation = read_generation()
+    for solution in first_generation:
+        _cso = calculate_origin_fitness(solution, hand_over_count, cell_list)
+        solution.fitness = _cso
+    current_gen = first_generation
+    # 进化
+    for i in range(1, 2):
+        current_gen = evolve(current_gen, hand_over_count, cell_list, adj_dic)
 
 
 if __name__ == '__main__':

@@ -75,9 +75,10 @@ def gen_new_individual(t0, tl, candidate, hand_over, cell_list, cell_info, B):
             for m in lambda_sub:
                 t_sub = copy.deepcopy(tl)
                 t_sub[i] = m
+                t_origin = calculate_cso(t0, hand_over, cell_list, cell_info)
                 t1 = calculate_cso(tl, hand_over, cell_list, cell_info)
                 t2 = calculate_cso(t_sub, hand_over, cell_list, cell_info)
-                if t1 - t2 > deita_start:
+                if t1 - t2 > deita_start and t2 < t_origin:
                     deita_start = t1 - t2
                     i_start = i
                     m_start = m
