@@ -3,6 +3,7 @@ from utils import *
 from individual import *
 from config import *
 import copy
+import pickle
 
 
 # 过滤小区
@@ -85,7 +86,7 @@ def calculate_bl(t0, tl, cell_list):
 
 def gen_new_individual(t0, tl, candidate, hand_over, cell_list, B):
     bl = calculate_bl(t0, tl, cell_list)
-
+    cnt = 0
     while True:
         deita_start = 0
         i_start = -1
@@ -98,8 +99,10 @@ def gen_new_individual(t0, tl, candidate, hand_over, cell_list, B):
             for m in lambda_sub:
                 t_sub = copy.deepcopy(tl)
                 t_sub[i] = m
-                if calculate_cso(tl, hand_over, cell_list) - calculate_cso(t_sub, hand_over, cell_list) > deita_start:
-                    deita_start = calculate_cso(tl, hand_over, cell_list) - calculate_cso(t_sub, hand_over, cell_list)
+                t1 = calculate_cso(tl, hand_over, cell_list)
+                t2 = calculate_cso(t_sub, hand_over, cell_list)
+                if t1 - t2 > deita_start:
+                    deita_start = t1 -t2
                     i_start = i
                     m_start = m
 
@@ -112,6 +115,8 @@ def gen_new_individual(t0, tl, candidate, hand_over, cell_list, B):
             tl[i_start] = m_start
         print(deita_start)
         print(tl)
+        with open('./generation/{}_{}.dat'.format(cnt, deita_start), 'wb') as pos:
+            pickle.dump(tl, pos)
         if deita_start == 0:
             break
 

@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 import csv
 from utils import *
+import pickle
 from individual import Individual
 import numpy as np
 import copy
 import multiprocessing
 from config import *
-
-file_num = multiprocessing.Manager().Value('d', 0.0)
-lock = multiprocessing.Manager().Lock()
-
 
 def get_candidate_from_cell(cell_info):
     res = []
@@ -33,8 +30,6 @@ def calculate_origin_fitness(idv, hand_over, cell_list, cell_info):
 
 
 def calculate_cso(t, hand_over, cell_list, cell_info):
-    with lock:
-        file_num.value += 1
     res = 0.0
     for i in t.keys():
         cell_index_x = cell_list[i]
@@ -64,11 +59,12 @@ def calculate_bl(t0, tl, cell_list, cell_info):
 
 def gen_new_individual(t0, tl, candidate, hand_over, cell_list, cell_info, B):
     bl = calculate_bl(t0, tl, cell_list, cell_info)
-
+    cnt = 0
     while True:
         deita_start = 0
         i_start = -1
         t_start = -1
+
         N_sub = [x for x in tl.keys() if
                  t0[x] != tl[x] or (t0[x] == tl[x] and bl + int(cell_info[int(cell_list[x])][5]) < B)]
         for i in N_sub:
@@ -94,9 +90,11 @@ def gen_new_individual(t0, tl, candidate, hand_over, cell_list, cell_info, B):
             tl[i_start] = m_start
         print(deita_start)
         print(tl)
-        # if deita_start == 0:
-        #     break
-        break
+        with open('./gen1/{}_{}.dat'.format(cnt, deita_start), 'wb') as pos:
+            pickle.dump(tl, pos)
+        if deita_start == 0:
+            break
+        cnt += 1
 
     return tl
 
