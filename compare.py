@@ -1,5 +1,6 @@
 import pickle
 
+
 def compare():
     with open('./gen1/0_29888.4.dat', 'rb') as pos:
         data = pickle.load(pos)

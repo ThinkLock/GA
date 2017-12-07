@@ -156,11 +156,11 @@ def old_main():
 
 def read_generation():
     res = []
-    gen_path = '/Users/didi/Desktop/gen1'
+    gen_path = './gen1'
     idv_list = os.listdir(gen_path)
-    print(len(idv_list[46:]))
+    print(len(idv_list[46:96]))
     cnt = 0
-    for idv in idv_list[46:]:
+    for idv in idv_list[46:96]:
         with open(os.path.join(gen_path, idv), 'rb') as f:
             solution = pickle.load(f)
             cnt += 1
@@ -262,15 +262,20 @@ def main():
     origin_cso = calculate_origin_fitness(ancestor, hand_over_count, cell_list)
     print("初始评测值: {}\n".format(origin_cso))
 
+    save_file = open('first_gen', 'w')
+
     # 生成第一代种群
     first_generation = read_generation()
     for solution in first_generation:
         _cso = calculate_origin_fitness(solution, hand_over_count, cell_list)
         solution.fitness = _cso
+        print(solution.fitness)
+        save_file.write("{}\n".format(solution))
     current_gen = first_generation
+
     # 进化
-    for i in range(1, 2):
-        current_gen = evolve(current_gen, hand_over_count, cell_list, adj_dic)
+    # for i in range(1, 2):
+    #     current_gen = evolve(current_gen, hand_over_count, cell_list, adj_dic)
 
 
 if __name__ == '__main__':

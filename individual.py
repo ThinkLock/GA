@@ -9,6 +9,9 @@ class Individual(object):
     def init_old_data(self, cell_list):
         self.tac_dic = gen_old_date(cell_list)
 
+    def __str__(self):
+        return "{},{}".format(self.fitness, self.tac_dic)
+
 
 def gen_tac_dic(cell_list, cell_info):
     res_dic = {}
